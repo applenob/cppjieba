@@ -15,3 +15,5 @@ tmp
 t.*
 *.pid
 build
+cmake-build-debug
+.idea

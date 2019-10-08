@@ -36,6 +36,12 @@ class DictTrie {
     Init(dict_path, user_dict_paths, user_word_weight_opt);
   }
 
+  DictTrie(const vector<string>& dict_lines,
+          const vector<string>& user_dict_lines,
+          UserWordWeightOption user_word_weight_opt = WordWeightMedian) {
+    Init(dict_lines, user_dict_lines, user_word_weight_opt);
+  }
+
   ~DictTrie() {
     delete trie_;
   }
@@ -157,7 +163,9 @@ class DictTrie {
 
 
  private:
-  void Init(const string& dict_path, const string& user_dict_paths, UserWordWeightOption user_word_weight_opt) {
+  void Init(const string& dict_path,
+          const string& user_dict_paths,
+          UserWordWeightOption user_word_weight_opt) {
     LoadDict(dict_path);
     freq_sum_ = CalcFreqSum(static_node_infos_);
     CalculateWeight(static_node_infos_, freq_sum_);
@@ -165,6 +173,21 @@ class DictTrie {
 
     if (user_dict_paths.size()) {
       LoadUserDict(user_dict_paths);
+    }
+    Shrink(static_node_infos_);
+    CreateTrie(static_node_infos_);
+  }
+
+  void Init(const vector<string>& dict_lines,
+          const vector<string>& user_dict_lines,
+          UserWordWeightOption user_word_weight_opt) {
+    LoadDict(dict_lines);
+    freq_sum_ = CalcFreqSum(static_node_infos_);
+    CalculateWeight(static_node_infos_, freq_sum_);
+    SetStaticWordWeights(user_word_weight_opt);
+
+    if (user_dict_lines.size()) {
+      LoadUserDict(user_dict_lines);
     }
     Shrink(static_node_infos_);
     CreateTrie(static_node_infos_);
@@ -212,6 +235,22 @@ class DictTrie {
             buf[0], 
             atof(buf[1].c_str()), 
             buf[2]);
+      static_node_infos_.push_back(node_info);
+    }
+  }
+
+  void LoadDict(const vector<string>& lines) {
+    vector<string> buf;
+
+    DictUnit node_info;
+    for (size_t i = 0; i < lines.size(); i++){
+      string line = lines[i];
+      Split(line, buf, " ");
+      XCHECK(buf.size() == DICT_COLUMN_NUM) << "split result illegal, line:" << line;
+      MakeNodeInfo(node_info,
+                   buf[0],
+                   atof(buf[1].c_str()),
+                   buf[2]);
       static_node_infos_.push_back(node_info);
     }
   }

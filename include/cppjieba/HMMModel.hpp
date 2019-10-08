@@ -29,6 +29,21 @@ struct HMMModel {
     emitProbVec.push_back(&emitProbS);
     LoadModel(modelPath);
   }
+
+  HMMModel(const vector<string>& model_lines) {
+    memset(startProb, 0, sizeof(startProb));
+    memset(transProb, 0, sizeof(transProb));
+    statMap[0] = 'B';
+    statMap[1] = 'E';
+    statMap[2] = 'M';
+    statMap[3] = 'S';
+    emitProbVec.push_back(&emitProbB);
+    emitProbVec.push_back(&emitProbE);
+    emitProbVec.push_back(&emitProbM);
+    emitProbVec.push_back(&emitProbS);
+    LoadModel(model_lines);
+  }
+
   ~HMMModel() {
   }
   void LoadModel(const string& filePath) {
@@ -71,6 +86,48 @@ struct HMMModel {
     XCHECK(GetLine(ifile, line));
     XCHECK(LoadEmitProb(line, emitProbS));
   }
+
+  void LoadModel(const vector<string>& file_lines) {
+
+    size_t iter_index = 0;
+    vector<string> tmp;
+    vector<string> tmp2;
+    //Load startProb
+    string line;
+    XCHECK(GetLineFromVector(file_lines, line, iter_index));
+    Split(line, tmp, " ");
+    XCHECK(tmp.size() == STATUS_SUM);
+    for (size_t j = 0; j< tmp.size(); j++) {
+      startProb[j] = atof(tmp[j].c_str());
+    }
+
+    //Load transProb
+    for (size_t i = 0; i < STATUS_SUM; i++) {
+      XCHECK(GetLineFromVector(file_lines, line, iter_index));
+      Split(line, tmp, " ");
+      XCHECK(tmp.size() == STATUS_SUM);
+      for (size_t j =0; j < STATUS_SUM; j++) {
+        transProb[i][j] = atof(tmp[j].c_str());
+      }
+    }
+
+    //Load emitProbB
+    XCHECK(GetLineFromVector(file_lines, line, iter_index));
+    XCHECK(LoadEmitProb(line, emitProbB));
+
+    //Load emitProbE
+    XCHECK(GetLineFromVector(file_lines, line, iter_index));
+    XCHECK(LoadEmitProb(line, emitProbE));
+
+    //Load emitProbM
+    XCHECK(GetLineFromVector(file_lines, line, iter_index));
+    XCHECK(LoadEmitProb(line, emitProbM));
+
+    //Load emitProbS
+    XCHECK(GetLineFromVector(file_lines, line, iter_index));
+    XCHECK(LoadEmitProb(line, emitProbS));
+  }
+
   double GetEmitProb(const EmitProbMap* ptMp, Rune key, 
         double defVal)const {
     EmitProbMap::const_iterator cit = ptMp->find(key);
@@ -82,6 +139,21 @@ struct HMMModel {
   bool GetLine(ifstream& ifile, string& line) {
     while (getline(ifile, line)) {
       Trim(line);
+      if (line.empty()) {
+        continue;
+      }
+      if (StartsWith(line, "#")) {
+        continue;
+      }
+      return true;
+    }
+    return false;
+  }
+  bool GetLineFromVector(vector<string> lines, string& line, size_t& index) {
+    while (index < lines.size()) {
+      line = lines[index];
+      Trim(line);
+      index += 1;
       if (line.empty()) {
         continue;
       }

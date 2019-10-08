@@ -1,4 +1,4 @@
-# CppJieba [简体中文](README.md)
+# CppJieba [简体中文](README_ORI.md)
 
 [![Build Status](https://travis-ci.org/yanyiwu/cppjieba.png?branch=master)](https://travis-ci.org/yanyiwu/cppjieba) 
 [![Author](https://img.shields.io/badge/author-@yanyiwu-blue.svg?style=flat)](http://yanyiwu.com/) 
